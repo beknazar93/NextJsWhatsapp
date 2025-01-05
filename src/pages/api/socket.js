@@ -1,42 +1,37 @@
+// pages/api/socket.js
 import { Server } from "socket.io";
-
-const usersTyping = new Set();
 
 export default function handler(req, res) {
   if (!res.socket.server.io) {
     const io = new Server(res.socket.server, {
       path: "/api/socket",
+      cors: {
+        origin: "*",  // Разрешение на доступ с любых источников (для тестов)
+        methods: ["GET", "POST"],
+      },
     });
-    res.socket.server.io = io;
 
     io.on("connection", (socket) => {
-      console.log("User connected:", socket.id);
+      console.log("Новое соединение");
 
-      // Получение нового сообщения
       socket.on("sendMessage", (message) => {
-        io.emit("newMessage", message);
+        io.emit("newMessage", message);  // Эмитируем новое сообщение для всех клиентов
       });
 
-      // Обработка печати
       socket.on("startTyping", (username) => {
-        usersTyping.add(username);
-        io.emit("typing", Array.from(usersTyping));
+        io.emit("typing", `${username} печатает...`);
       });
 
-      socket.on("stopTyping", (username) => {
-        usersTyping.delete(username);
-        io.emit("typing", Array.from(usersTyping));
+      socket.on("stopTyping", () => {
+        io.emit("typing", "");  // Останавливаем уведомление о печати
       });
 
-      // Обработка отключения пользователя
       socket.on("disconnect", () => {
-        console.log("User disconnected:", socket.id);
-        // Удаляем пользователя из typing при отключении
-        io.emit("typing", Array.from(usersTyping));
+        console.log("Пользователь отключился");
       });
     });
 
-    console.log("Socket.IO server initialized");
+    res.socket.server.io = io;  // Привязываем сервер с сокетами к сокет-серверу
   }
-  res.end();
+  res.end();  // Завершаем обработку запроса
 }
