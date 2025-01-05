@@ -6,7 +6,7 @@ export default function handler(req, res) {
     const io = new Server(res.socket.server, {
       path: "/api/socket",
       cors: {
-        origin: "*",  // Разрешение на доступ с любых источников (для тестов)
+        origin: "https://next-js-whatsapp-lyart.vercel.app/",  // Разрешение на доступ с любых источников (для тестов)
         methods: ["GET", "POST"],
       },
     });
